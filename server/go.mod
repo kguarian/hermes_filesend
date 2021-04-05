@@ -1,4 +1,4 @@
-module mm
+module hermes
 
 go 1.16
 

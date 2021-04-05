@@ -48,8 +48,8 @@ func tesfunc() {
 	dev1, err := NewDevice("kguarian", "dev1", net.ParseIP(IP_DEV1))
 	Errhandle_Exit(err, ERRMSG_CREATE_DEVICE)
 
-	content := NewContent("/home/guarian/HOME/coding/go/src/rnd/restserver/server/testfile.txt")
-	content2 := NewContent("/home/guarian/HOME/coding/go/src/rnd/restserver/server/test2.txt")
+	content := NewContent("testfile.txt")
+	content2 := NewContent("test2.txt")
 
 	cinf, err := dev0.NewContentinfo(&dev1, &content)
 
