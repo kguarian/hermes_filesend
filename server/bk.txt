@@ -1,0 +1,153 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"reflect"
+
+	//	"reflect"
+	"strings"
+)
+
+func main() { //used to send GET request
+	var err error                                                             //for error handlint
+	const keypath string = "/home/guarian/HOME/coding/go/misc/apikey/key.txt" //ask kguarian for the key.
+	const apiHeader string = "X-MailerLite-ApiKey"
+
+	const mailerliteurl string = "https://api.mailerlite.com/api/v2/subscribers"
+	// const mailerliteurl string = "https://api.mailerlite.com/api/v2/groups"
+
+	var key []byte = make([]byte, 32)         //initializing the buffer proved necessary
+	var reader io.Reader                      //for reading in key, possibly for reading response body too
+	var jsonresponse []map[string]interface{} //to store json body response when reading response body works
+	//  jsonresponse  := map[string]interface{}{}
+
+	reader, err = os.Open(keypath) //creating buffer for reading key
+	errorPanic(err)
+	length, err := reader.Read(key) //setting key
+	errorPanic(err)
+	if length == 0 {
+		log.Panicf("ATTENTION: READ LENGTH ZERO FROM %s\n", keypath)
+	}
+
+	fmt.Printf("%24.24s: %s\n", "API KEY", key)       //print key for confirmation
+	fmt.Printf("%24.24s: %s\n", "URL", mailerliteurl) //print key for confirmation
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", mailerliteurl, nil) //Create new GET request. Body MUST be either null or empty reader
+	errorPanic(err)
+	req.Header.Set(apiHeader, string(key)) //constant for any MailerLite API request
+	resp, err := client.Do(req)
+	errorPanic(err)
+
+	if resp.StatusCode != 200 { //I believe that all successful MailerLite responses return 200
+		log.Fatalf("Bad Status Code\n")
+	}
+	defer resp.Body.Close()
+	response, err := ioutil.ReadAll(resp.Body) //retrieve response contents
+	fmt.Printf("%24.24s: %d\n", "response length", len(response))
+	errorPanic(err)
+	// filehandle, err := os.Create("output1.html")
+	// errorPanic(err)
+	// length, err := filehandle.Write(response)
+	// errorPanic(err)
+	err = json.Unmarshal(response, &jsonresponse) //creates golang object from MailerLite response
+	errorPanic(err)
+	parseMap(jsonresponse, 0)
+
+	fmt.Printf("------------old way below----------------\n")
+
+	//	    fmt.Printf ("%24.24s: %d\n", "Length of jsonresponse", len(jsonresponse))
+	//
+	//	    for inx1, value1 := range jsonresponse {
+	//
+	//	        fmt.Printf("Json Response Item # %2d is of type %s\n", inx1, reflect.TypeOf(value1))
+	//
+	//
+	//	        // some code stolen from: https://stackoverflow.com/questions/29366038/looping-iterate-over-the-second-level-nested-json-in-go-lang
+	//
+	//	        for name, value2 := range value1 {
+	//
+	//	            if value2 == nil {
+	//	                fmt.Printf("    %24.24s:  %-12.12s: %v\n", name, "nil", value2)
+	//	            } else {
+	//	                theType := reflect.TypeOf(value2)
+	//
+	//	                switch t := value2.(type) {
+	//
+	//	                case float64:
+	//	                    fmt.Printf("    %24.24s:  %-12.12s: %.4f\n", name, theType, value2)
+	//
+	//	                case string:
+	//	                    fmt.Printf("    %24.24s:  %-12.12s: \"%s\"\n", name, theType, value2)
+	//
+	//	                case []interface{}:
+	//	                   // for if_inx, if_value := range value2 {
+	//	                   //     fmt.Printf("    %24.24v:  %-12.12v: \"%v\"\n", if_inx, if_value)
+	//	                   // }
+	//	                    fmt.Printf("    %24.24s:  %-12.12s: \"%s\"\n", name, theType, value2)
+	//	                    //fmt.Printf("    length is %d\n", len(value2))
+	//
+	//	                default:
+	//	                    if false {
+	//	                        fmt.Printf ("    value2.(type)=\"%v\", theType=\"%v\"\n", t, theType)
+	//	                    }
+	//	                    fmt.Printf("    %24.24s:  %-12.12s: %v\n", name, theType, value2)
+	//	                }
+	//	            }
+	//	        }
+	//	        fmt.Printf("\n");
+	//	    }
+	//		fmt.Printf("\n");
+	//		// fmt.Printf("%24.24s: %s\n", "Raw Response", response);
+
+}
+
+func errorPanic(err error) {
+	if err != nil {
+		log.Panicf("ERROR: %s\n", err)
+	}
+}
+
+func indent(depth int) string {
+	s := strings.Repeat(" ", depth*4)
+	return s
+}
+
+func parseMap(aMap []map[string]interface{}, depth int, w io.Writer) { // was one set of {}
+
+	for _, mapint := range aMap {
+		for key, val := range mapint {
+			switch concreteVal := val.(type) {
+			case map[string]interface{}:
+				fmt.Fprintf(w, "%s%s\n", indent(depth), key)
+				var mapslice []map[string]interface{} = []map[string]interface{}{val.(map[string]interface{})}
+				parseMap(mapslice, depth+1, w)
+				//parseMap(val.(map[string]interface{}), depth+1)
+			case []interface{}:
+				fmt.Printf("%s%s\n", indent(depth), key)
+				parseArray(val.([]interface{}), depth+1, w)
+			default:
+				fmt.Printf("%skey %v : %v\n", indent(depth), key, concreteVal)
+			}
+		}
+	}
+}
+
+func parseArray(anArray []interface{}, depth int, w io.Writer) {
+
+	for i, val := range anArray {
+		if len(anArray) == 0 {
+			fmt.Fprintf(w, "nil\n")
+		} else {
+			holder :=reflect.ValueOf(anArray[0]).Type()
+			fmt.Fprintf("%v", holder)
+		}
+	}
+}
+

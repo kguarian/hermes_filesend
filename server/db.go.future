@@ -1,0 +1,16 @@
+
+	devicetable, err := sql.Open("mysql", "root:!C(.baY)f3Id@tcp(127.0.0.1:3306)/hermes")
+	Errhandle_Exit(err, ERRMSG_DB_CONNECTION)
+	defer devicetable.Close()
+	devicetable.
+	err = devicetable.Ping()
+	Errhandle_Exit(err, ERRMSG_DB_CONNECTION)
+
+
+	go.mod
+	using github.com/go-sql-driver/mysql v1.6.0 // indirect
+
+	go.sum
+
+	github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
+github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=

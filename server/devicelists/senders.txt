@@ -1,0 +1,5 @@
+{"userid":"kguarian","devname":"dev0","devid":"dc5656a4-0dbf-4841-a6e9-a6d5e412f91c","ipaddr":"","clist":{}}
+{"userid":"kguarian","devname":"dev1","devid":"bd85a8c0-5990-4d04-9d56-e58fe89b614a","ipaddr":"","clist":{}}
+
+{"userid":"k","devname":"k","devid":"7d74c207-453d-499d-b924-6fd12a71ed30","ipaddr":"192.168.1.118","clist":{}}
+{"userid":"kguarian","devname":"cplusplus","devid":"2e7a0835-a1c7-4938-9f6e-c98c8e524357","ipaddr":"192.168.1.118","clist":{}}
