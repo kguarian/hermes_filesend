@@ -1,0 +1,1 @@
+sudo rm -r $GOROOT/src/hellabackend/; sudo cp -r . $GOROOT/src/hellabackend

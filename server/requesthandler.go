@@ -6,31 +6,23 @@ import (
 )
 
 //handles requests for the server
-func HandleNewRequest() (net.Conn, error) {
-	var tcpl net.Listener
-	var conn net.Conn
+func Ambassador(conn net.Conn) {
 	var msg Netmessage
 	var err error
-	tcpl, err = net.Listen(TCP, IP_SERVER)
 	Errhandle_Log(err, ERRMSG_TCPLISTENER)
 	if err != nil {
-		return conn, err
-	}
-	conn, err = tcpl.Accept()
-	Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)
-	if err != nil {
-		return conn, err
+		return
 	}
 	err = ReceiveStruct(&msg, conn)
 	Errhandle_Log(err, ERRMSG_NETWORK_RECEIVE_STRUCT)
 	if err != nil {
-		return conn, err
+		return
 	}
 	switch msg.Message {
 	case NETREQ_NEWDEVICE:
 		RequestDevice(conn)
 	}
-	return conn, nil
+
 }
 
 //Request to add/register device.

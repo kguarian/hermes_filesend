@@ -3,5 +3,14 @@ package main
 import "github.com/google/uuid"
 
 type user struct {
-	devicelist map[uuid.UUID]device
+	Username   string
+	Userid     uuid.UUID
+	Devicelist map[uuid.UUID]device
+}
+
+//TODO: Consider removing in user package.
+func NewUser(username string) (retuser user, err error) {
+	id, err := uuid.NewUUID()
+	retuser = user{Username: username, Userid: id, Devicelist: make(map[uuid.UUID]device)}
+	return
 }

@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "client_cpp"
+		},
+		{
+			"path": "server"
+		},
+		{
+			"path": "hellabackend"
+		},
+		{
+			"path": "alpha"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"iostream": "cpp",
+			"string": "cpp"
+		}
+	}
+}

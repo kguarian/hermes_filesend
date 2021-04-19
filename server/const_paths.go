@@ -4,5 +4,9 @@ package main
 
 const (
 	DIR_AUTH        = "devicelists"
-	FILE_SENDERLIST = "senders.txt"
+	FILE_SENDERLIST = "devicelists/senders.txt"
+)
+
+const (
+	SENDERLIST_BUFSZ int64 = 65535
 )
