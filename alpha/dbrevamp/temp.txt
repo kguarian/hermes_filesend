@@ -1,0 +1,2 @@
+// username = "";drop table device`slice;'
+insertUrlStatusSQL := fmt.Sprintf(`SELECT device_slice from user_devices WHERE username == %s`, username)

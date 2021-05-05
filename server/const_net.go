@@ -3,20 +3,32 @@
 package main
 
 const (
-	IP_SERVER        = "192.168.1.118:3128"
+	IP_main          = "192.168.1.118:8081"
 	NETCODE_ERR      = byte(0)
 	NETCODE_SUC      = byte(1)
 	PORT_LOWER_BOUND = 49152
 	PORT_UPPER_BOUND = 65535
 	TCP              = "tcp"
 )
+
 const (
-	//Requests from device
-	NETREQ_NEWDEVICE          = "nd"
-	NETREQ_NEWCONTENTTRANSFER = "nct"
+	nativegoclient int = iota
+	jsclient
 )
 
 const (
-	//Directive from server
+	websocket_type_text       = 1
+	websocket_type_binary int = 2
+)
+
+const (
+	//Requests from device
+	NETREQ_NEWDEVICE            = "nd"
+	NETREQ_NEWDEVICE_JAVASCRIPT = "nd_js"
+	NETREQ_NEWCONTENTTRANSFER   = "nct"
+)
+
+const (
+	//Directive from main
 	NETDIR_SENDCONTENTINFO = "s_ci"
 )

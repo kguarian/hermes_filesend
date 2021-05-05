@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "alpha"
+		},
+		{
+			"path": "client_js"
 		}
 	],
 	"settings": {

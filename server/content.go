@@ -37,7 +37,7 @@ func NewContent(path string) content {
 }
 
 //Constructor
-func (d *device) NewContentinfo(r *device, c *content) (contentinfo, error) {
+func (d *Device) NewContentinfo(r *Device, c *content) (contentinfo, error) {
 	var cisz int64    //ContentInfo Size
 	var ciname string //ContentInfo Name
 	var retcontentinfo contentinfo

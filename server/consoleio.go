@@ -25,6 +25,7 @@ const (
 
 //In SetConsoleColor, we change the console color using this map as a lookup table.
 var colormap map[string]string = map[string]string{RESET: ANSIRESET, RED: ANSIRED, GREEN: ANSIGREEN, YELLOW: ANSIYELLOW}
+var displaylogs bool = true
 
 //We sometimes exit after errors. When we do, we call this function. Error messages are red here. These will be the last output from the program.
 func Errhandle_Exit(err error, reason string) {
@@ -46,6 +47,9 @@ func Errhandle_Exit(err error, reason string) {
 
 //We call this function for kind of trivial errors. It doesn't kill the program, error messages are yellow here.
 func Errhandle_Log(err error, reason string) {
+	if !displaylogs {
+		return
+	}
 	var file string
 	var line int
 	fmt.Printf("%s:", reason)

@@ -3,8 +3,8 @@
 package main
 
 const (
-	DIR_AUTH        = "devicelists"
-	FILE_SENDERLIST = "devicelists/senders.txt"
+	DIR_AUTH       = "devicelists"
+	DEVICE_DB_PATH = "devicelists/devlist.db"
 )
 
 const (

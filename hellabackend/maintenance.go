@@ -23,24 +23,24 @@ type PortMutex struct {
 	Locked          bool
 }
 
-func InitPortGenerator(lower int, upper int) error {
-	var mutexes chan *PortMutex
-	var newMutex PortMutex
-	if PortBoundCheck(lower, upper) == false {
-		err := errors.New(ERRMSG_NETWORK_INVALID_PORT)
-		return err
-	}
-	mutexcount := upper - lower + 1
-	portmutexcount = mutexcount
-	availableportmutexes = make(chan *PortMutex, mutexcount)
-	for index := 0; index < mutexcount; index++ {
-		newMutex = PortMutex{Portnumber: int16(lower + index), Mutex: &sync.Mutex{}, Locked: false}
-		//watch out for disappearing PortMutexes. Will have to better understand gc if so.
-		availableportmutexes <- &newMutex
-	}
-	availableportmutexes = mutexes
-	return nil
-}
+// func InitPortGenerator(lower int, upper int) error {
+// 	var mutexes chan *PortMutex
+// 	var newMutex PortMutex
+// 	if PortBoundCheck(lower, upper) == false {
+// 		err := errors.New(ERRMSG_NETWORK_INVALID_PORT)
+// 		return err
+// 	}
+// 	mutexcount := upper - lower + 1
+// 	portmutexcount = mutexcount
+// 	availableportmutexes = make(chan *PortMutex, mutexcount)
+// 	for index := 0; index < mutexcount; index++ {
+// 		newMutex = PortMutex{Portnumber: int16(lower + index), Mutex: &sync.Mutex{}, Locked: false}
+// 		//watch out for disappearing PortMutexes. Will have to better understand gc if so.
+// 		availableportmutexes <- &newMutex
+// 	}
+// 	availableportmutexes = mutexes
+// 	return nil
+// }
 
 func GetPortMutex() (*PortMutex, error) {
 	var RetPM *PortMutex

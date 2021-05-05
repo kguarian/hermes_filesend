@@ -7,50 +7,48 @@ import (
 	"net"
 )
 import (
-	"encoding/json"
-	"fmt"
-
-	"hermes/hellabackend"
+	"database/sql"
+	"flag"
 )
 
-//export DeviceConn
-func DeviceConn(userid string, devicename string) {
-	var sentdev deviceinfo
-	var connServer net.Conn
-	var msg []byte
-	var err error
-	sentdev = deviceinfo{Userid: userid, Devicename: devicename}
-	connServer, err = net.Dial(TCP, IP_SERVER)
-	Errhandle_Log(err, ERRMSG_NETWORK_DIAL)
-	if err != nil {
-		return
-	}
-	defer connServer.Close()
-	msg, err = json.Marshal(sentdev)
-	Errhandle_Log(err, ERRMSG_NETWORK_DIAL)
-	if err != nil {
-		return
-	}
-	connServer.Write(msg)
-}
-
-func InitiateEverything() {
-	InitDeviceTables()
-	hellabackend.InitPortGenerator(PORT_LOWER_BOUND, PORT_UPPER_BOUND)
-
-}
+// //export DeviceConn
+// func DeviceConn(userid string, devicename string) {
+// 	var sentdev DeviceInfo
+// 	var connmain net.Conn
+// 	var msg []byte
+// 	var err error
+// 	sentdev = DeviceInfo{Userid: userid, Devicename: devicename}
+// 	connmain, err = net.Dial(TCP, IP_main)
+// 	Errhandle_Log(err, ERRMSG_NETWORK_DIAL)
+// 	if err != nil {
+// 		return
+// 	}
+// 	defer connmain.Close()
+// 	msg, err = json.Marshal(sentdev)
+// 	Errhandle_Log(err, ERRMSG_NETWORK_DIAL)
+// 	if err != nil {
+// 		return
+// 	}
+// 	connmain.Write(msg)
+// }
 
 func main() {
+	logflag = flag.Bool("log", true, USTRING_SHOWLOG)
+	flag.Parse()
 
+	displaylogs = *logflag
+
+	var devicedatabase *sql.DB
 	InitiateEverything()
-	tcpl, err := net.Listen(TCP, IP_SERVER) //change
+	defer devicedatabase.Close()
+	tcpl, err := net.Listen(TCP, IP_main) //change
 	Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)
 	for {
-		fmt.Printf("%sRESTARTING HERE\n%s", ANSIRED, ANSIRESET)
+		//fmt.Printf("%sRESTARTING HERE\n%s", ANSIRED, ANSIRESET)
 		conn, err := tcpl.Accept()
 		Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)
 		go Ambassador(conn)
-		fmt.Printf("%sFINISHED HERE\n%s", ANSIRED, ANSIRESET)
+		//fmt.Printf("%sFINISHED HERE\n%s", ANSIRED, ANSIRESET)
 	}
 }
 
@@ -97,7 +95,7 @@ func tesfunc() {
 	//----------
 
 	for {
-		tcpl, err := net.Listen(TCP, IP_SERVER)
+		tcpl, err := net.Listen(TCP, IP_main)
 		Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)
 		conn, err := tcpl.Accept()
 		Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)

@@ -16,7 +16,7 @@ var INVALIDUSERCHARS []rune = []rune{'\t', ' ', ':', '[', ']', '.'}
 //const namelengthlimit int = [decide on a limit and put it here]
 
 //for internal use, mainly. This is shared with the client as of 4/4/2021
-type device struct {
+type Device struct {
 	Userid      string                 `json:"userid"`
 	Devicename  string                 `json:"devname"`
 	Deviceid    uuid.UUID              `json:"devid"`
@@ -28,37 +28,34 @@ type device struct {
 	Online      bool                   `json:"-"`
 }
 
-//Sent from client to server on initiated contact.
-type deviceinfo struct {
+//Sent from client to main on initiated contact.
+type DeviceInfo struct {
 	Userid     string `json:"userid"`
 	Devicename string `json:"devname"`
 }
 
 //Constructor
 //NewDevices creates a new device, but returns an error iff the parametrized id is invalid
-func NewDevice(userid string, devicename string, ipaddr net.IP) (device, error) {
+//RETURNS: error with message (ERRMSG_DEVICEEXISTS) if the device already exists
+func NewDevice(userid string, devicename string, ipaddr net.IP) (Device, error) {
 	const invalidusername string = "invalid username string"
-	var retdevice device
+	var retdevice Device
 	var err error
-	var devicejson []byte
+	var found_device Device
 	if !EvalName(userid) {
 		err = errors.New(invalidusername)
 		return retdevice, err
 	}
-	devicejson, err = CheckForDevice(userid, devicename)
+	found_device, err = CheckForDevice(userid, devicename)
 	Errhandle_Log(err, ERRMSG_DEVICECHECK)
 
-	if err != nil || devicejson == nil {
+	if err != nil {
 		cl := make(map[string]contentinfo)
 		deviceid := uuid.New()
-		retdevice = device{Userid: userid, Deviceid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Consentlist: cl, Online: false}
+		retdevice = Device{Userid: userid, Deviceid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Consentlist: cl, Online: false}
 		AddDevice(retdevice)
 	} else {
-		err = json.Unmarshal(devicejson, &retdevice)
-		Errhandle_Log(err, ERRMSG_JSON_UNMARSHALL)
-		if err != nil {
-			return retdevice, errors.New(ERRMSG_JSON_UNMARSHALL)
-		}
+		return found_device, errors.New(ERRMSG_DEVICEEXISTS)
 	}
 
 	in := make(chan byte, 10*1024)
@@ -72,7 +69,7 @@ func NewDevice(userid string, devicename string, ipaddr net.IP) (device, error) 
 }
 
 //This is an incredibly useless wrapper function that harms no one.
-func (d *device) MarshalDevice() []byte {
+func (d *Device) MarshalDevice() []byte {
 	retinfo, err := json.Marshal(d)
 	Errhandle_Log(err, ERRMSG_JSON_MARSHALL)
 	if err != nil {
@@ -82,18 +79,18 @@ func (d *device) MarshalDevice() []byte {
 }
 
 //TODO: Actually implement a login protocol
-func (d *device) Login() {
+func (d *Device) Login() {
 	d.Online = true
 }
 
 //TODO: Implement a login/logout system.
-func (d *device) Logout() {
+func (d *Device) Logout() {
 	d.Online = false
 }
 
 //TODO: Implement a networked form of this.
 //RequestConsent sends a single-file consent-to-transfer request from one device to another
-func (d *device) RequestConsent(recipientdevice device, c contentinfo) error {
+func (d *Device) RequestConsent(recipientdevice Device, c contentinfo) error {
 	//pointer not nil; checked above
 	if !recipientdevice.Online {
 		SetConsoleColor(RED)
@@ -106,7 +103,7 @@ func (d *device) RequestConsent(recipientdevice device, c contentinfo) error {
 }
 
 //TODO: Networked form
-func (d *device) EvalConsent(sender *device) error {
+func (d *Device) EvalConsent(sender *Device) error {
 	var character byte
 	var cont contentinfo
 	var err error
@@ -139,7 +136,7 @@ func Approveconsent(authtoken byte, c *contentinfo) (string, error) {
 }
 
 //TODO: implement
-func (d *device) SendContent(c *contentinfo) {
+func (d *Device) SendContent(c *contentinfo) {
 
 }
 

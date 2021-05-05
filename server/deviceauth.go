@@ -3,10 +3,13 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
+	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -16,134 +19,83 @@ const (
 var basedir string
 
 //creates a file called "devicelists/senders.txt"
-func InitDeviceTables() {
-	var file *os.File
+func InitDeviceTables() *sql.DB {
+	var dbfile *os.File
 	var err error
 
-	basedir, err = os.Getwd()
-	Errhandle_Exit(err, ERRMSG_GETWD)
-	err = os.Chdir(DIR_AUTH)
-	Errhandle_Log(err, ERRMSG_FILEIO)
+	db_mutex.Lock()
+	defer db_mutex.Unlock()
+
+	dbfile, err = os.Open(DEVICE_DB_PATH)
 	if err != nil {
-		err = os.Mkdir(DIR_AUTH, PERM_RWX_OWNER)
-		Errhandle_Exit(err, ERRMSG_FILEIO)
+		fmt.Printf("%s", err)
+		if _, ok := err.(*os.PathError); ok {
+			dbfile, err = os.Create(DEVICE_DB_PATH)
+			if err != nil {
+				log.Panicf("unknown IO error in InitDeviceTables(), case 1\n")
+			}
+		} else {
+			log.Panicf("unknown IO error in InitDeviceTables(), case 2\n")
+		}
 	}
-	err = os.Chdir(basedir)
+	defer dbfile.Close()
+
+	sqliteDatabase, err := sql.Open("sqlite3", DEVICE_DB_PATH) // Open the created SQLite File
 	if err != nil {
-		Errhandle_Exit(err, ERRMSG_FILEIO)
+		log.Fatalf("%s\n", err)
 	}
 
-	file, err = os.Open(FILE_SENDERLIST)
-	Errhandle_Log(err, ERRMSG_FILEIO)
-	if os.IsNotExist(err) {
-		_, err = os.Create(FILE_SENDERLIST)
-		Errhandle_Exit(err, ERRMSG_FILEIO)
-		_, err = os.Open(FILE_SENDERLIST)
-		Errhandle_Exit(err, ERRMSG_FILEIO)
+	err = DB_CreateDeviceTable(sqliteDatabase)
+	if err != nil {
+		Errhandle_Log(err, ERRMSG_DBEXISTS)
 	}
-	file.Close()
 
-	//housecleaning
-	os.Chdir(basedir)
+	devicedb = sqliteDatabase
+	return sqliteDatabase
 }
 
 //check devices/senders.txt for device entry with matching userid and devicename
-func AddDevice(d device) (device, error) {
-	var retdevice device
-	var file *os.File
-	var filewriter *bufio.Writer
+func AddDevice(d Device) error {
 	var err error
-
-	if basedir == "" {
-		return retdevice, errors.New(ERRMSG_BASEDIR_NOT_FOUND)
-	}
-
-	Errhandle_Log(err, ERRMSG_FILEIO)
-	if err != nil {
-		return retdevice, errors.New(ERRMSG_FILEIO)
-	}
+	var devslice []Device
 
 	mut_devlist.Lock()
 	defer mut_devlist.Unlock()
 
-	file, err = os.OpenFile(FILE_SENDERLIST, os.O_RDWR|os.O_APPEND, PERM_RWX_OWNER)
-	Errhandle_Log(err, ERRMSG_FILEIO)
+	devslice, err = DB_GetDeviceSlice(devicedb, d.Userid)
 	if err != nil {
-		return retdevice, errors.New(ERRMSG_FILEIO)
+		return err
 	}
-	defer file.Close()
-
-	Errhandle_Log(err, ERRMSG_FILEIO)
-	if err != nil {
-		return retdevice, errors.New(ERRMSG_FILEIO)
+	if len(devslice) == 0 {
+		devslice = make([]Device, 1)
+		devslice[0] = d
+		DB_InsertDeviceSlice(devicedb, d.Userid, devslice)
+		return nil
+	} else {
+		devslice = append(devslice, d)
+		DB_InsertDeviceSlice(devicedb, d.Userid, devslice)
+		return nil
 	}
-
-	filewriter = bufio.NewWriter(file)
-	//TODO: implement a backup mechanism in case this crashes the program.
-
-	_, err = filewriter.WriteString(string(d.MarshalDevice()) + "\n")
-	Errhandle_Log(err, ERRMSG_WRITE)
-	if err != nil {
-		return retdevice, errors.New(ERRMSG_WRITE)
-	}
-	err = filewriter.Flush()
-	Errhandle_Log(err, ERRMSG_WRITE)
-	if err != nil {
-		return retdevice, errors.New(ERRMSG_WRITE)
-	}
-	//housecleaning
-	return d, nil
 }
 
 //checks devicelists/senders for device entry with the parametrized properties.
-func CheckForDevice(userid string, devname string) ([]byte, error) {
-	var file *os.File
+func CheckForDevice(userid string, devname string) (Device, error) {
+	var devslice []Device
 	var err error
-	var filereader *bufio.Reader
-	var filereadbuf []byte
-	var currdevice device
+	var retDevice Device
 
-	if basedir == "" {
-		return nil, errors.New(ERRMSG_BASEDIR_NOT_FOUND)
-	}
-
-	Errhandle_Log(err, ERRMSG_FILEIO)
+	devslice, err = DB_GetDeviceSlice(devicedb, userid)
 	if err != nil {
-		return nil, errors.New(ERRMSG_FILEIO)
+		return retDevice, err
 	}
-
-	mut_devlist.Lock()
-	defer mut_devlist.Unlock()
-
-	file, err = os.OpenFile(FILE_SENDERLIST, os.O_RDONLY, PERM_RWX_OWNER)
-	Errhandle_Log(err, ERRMSG_FILEIO)
-	if err != nil {
-		return nil, errors.New(ERRMSG_FILEIO)
-	}
-	defer file.Close()
-
-	Errhandle_Log(err, ERRMSG_FILEIO)
-	if err != nil {
-		return nil, errors.New(ERRMSG_FILEIO)
-	}
-	filereader = bufio.NewReader(file)
-
-	for {
-		filereadbuf, err = filereader.ReadBytes('\n')
-		Errhandle_Log(err, ERRMSG_READ)
-		if err != nil {
-			break
+	if len(devslice) == 0 {
+		return retDevice, errors.New(ERRMSG_DEVICENOTFOUND)
+	} else {
+		for _, device := range devslice {
+			if device.Devicename == devname {
+				return device, nil
+			}
 		}
-		//Sometimes, newlines are added to the file, so until we fix that, we'll just not consider them.
-		//TODO: That was a patch, not a fix
-		if len(filereadbuf) < 2 {
-			continue
-		}
-		err = json.Unmarshal(filereadbuf, &currdevice)
-		Errhandle_Log(err, ERRMSG_JSON_UNMARSHALL)
-		if currdevice.Userid == userid && currdevice.Devicename == devname {
-			return filereadbuf, nil
-		}
+		return retDevice, errors.New(ERRMSG_DEVICENOTFOUND)
 	}
-	return nil, nil
 }
