@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 )
 
 var db_mutex sync.Mutex = sync.Mutex{}
@@ -47,10 +46,9 @@ func DB_InsertDeviceSlice(db *sql.DB, username string, deviceslice []Device) err
 		log.Printf("Marshal Error.\n")
 	}
 	_, err = statement.Exec(username, jsonstring)
-	db_mutex.Unlock()
 	if err != nil {
 		log.Printf("Execute INSERT INTO failed: %s\n", err.Error())
-		time.Sleep(500 * time.Second)
+		return err
 	}
 	statement.Close()
 	return nil

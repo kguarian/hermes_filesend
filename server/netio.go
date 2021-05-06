@@ -325,7 +325,7 @@ func ReceiveStruct_JSClient(i interface{}, c net.Conn) error {
 		Errhandle_Log(err, ERRMSG_NETWORK_DATAGRAM)
 		return err
 	}
-	log.Printf("%v\n", datagram)
+	log.Printf("%v\n", string(datagram.Data))
 	err = json.Unmarshal(datagram.Data, i)
 	if err != nil {
 		Errhandle_Log(err, ERRMSG_JSON_UNMARSHALL)

@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -123,19 +124,12 @@ func RequestDevice(conn net.Conn) (Device, error) {
 }
 
 func RequestDevice_Websocket(conn net.Conn) (Device, error) {
-	var msg Netmessage
 	var retdevice Device
 	var err error
 	var cdinf DeviceInfo
 	var ip net.IP
 	var ipstring string
 
-	msg = NewNetmessage(NETREQ_NEWDEVICE_JAVASCRIPT)
-	err = SendStruct_JSClient(&msg, conn)
-	Errhandle_Log(err, ERRMSG_NETWORK_SEND_STRUCT)
-	if err != nil {
-		return retdevice, err
-	}
 	err = ReceiveStruct_JSClient(&cdinf, conn)
 	if err != nil {
 		return retdevice, err
@@ -144,6 +138,7 @@ func RequestDevice_Websocket(conn net.Conn) (Device, error) {
 	ip = net.ParseIP(ipstring)
 	retdevice, err = NewDevice(cdinf.Userid, cdinf.Devicename, ip)
 	Errhandle_Log(err, ERRMSG_CREATE_DEVICE)
+	log.Printf("DEVICE: %v\n", retdevice)
 	err = SendStruct_JSClient(&retdevice, conn)
 	Errhandle_Log(err, ERRMSG_NETWORK_SEND_STRUCT)
 	//return or return, because we can't return a nil device
