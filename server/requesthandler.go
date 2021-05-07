@@ -71,6 +71,10 @@ func ClientIdentifier(conn net.Conn) (int, error) {
 		return retval, err
 	}
 	httpreq, err = http.ReadRequest(bufioReader)
+	Errhandle_Log(err, ERRMSG_NETWORK_PARSE_HTTPREQ)
+	if err != nil {
+		return -1, err
+	}
 	bufioReader = bufio.NewReader(httpreq.Body)
 	fmt.Printf("Header: %v\n", httpreq.Header)
 	if httpreq.Header["Sec-Websocket-Version"] != nil {
@@ -86,7 +90,7 @@ func ClientIdentifier(conn net.Conn) (int, error) {
 		fmt.Printf("\n\rresponse:\n%s\n", retstring)
 		conn.Write([]byte(retstring))
 		return jsclient, nil
-	} else if httpreq.Header["nativegoclient"] != nil {
+	} else if httpreq.Header["Nativegoclient"] != nil {
 		return nativegoclient, nil
 	} else {
 		return -1, nil
@@ -113,6 +117,7 @@ func RequestDevice(conn net.Conn) (Device, error) {
 	if err != nil {
 		return retdevice, err
 	}
+	log.Printf("native go client: userid: %s, device: %s", cdinf.Userid, cdinf.Devicename)
 	ipstring = strings.Split(conn.RemoteAddr().String(), ":")[0]
 	ip = net.ParseIP(ipstring)
 	retdevice, err = NewDevice(cdinf.Userid, cdinf.Devicename, ip)

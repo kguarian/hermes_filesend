@@ -27,6 +27,7 @@ const (
 	ERRMSG_NETWORK_CONNECTION        = "new network connection"
 	ERRMSG_NETWORK_CONNECTION_CLIENT = "new client connection"
 	ERRMSG_NETWORK_INVALID_PORT      = "result of invalid port (successful = valid, uncuccessful = invalid)"
+	ERRMSG_NETWORK_PARSE_HTTPREQ     = "parse http request"
 	ERRMSG_NETWORK_PORTS_OCCUPIED    = "all ports are occupied"
 	ERRMSG_NETWORK_SEND_LEN0         = "attempted send of length 0"
 	ERRMSG_NETWORK_SEND_TOOSHORT     = "attempted to send message too short for function"

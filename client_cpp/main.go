@@ -6,6 +6,8 @@ import (
 )
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 )
 
 func main() {}
@@ -19,14 +21,18 @@ func DeviceConn(userid *C.char, devicename *C.char) {
 	var msg = Netmessage{NETREQ_NEWDEVICE}
 	var uid string = C.GoString(userid)
 	var dname string = C.GoString(devicename)
+	var req http.Request
+
+	connServer, err = net.Dial(TCP, IP_SERVER)
+	req = http.Request{URL: &url.URL{}, Method: http.MethodGet, Header: map[string][]string{"Nativegoclient": {"true"}}}
 
 	devinf = deviceinfo{Userid: uid, Devicename: dname}
-	connServer, err = net.Dial(TCP, IP_SERVER)
 	Errhandle_Log(err, ERRMSG_NETWORK_DIAL)
 	if err != nil {
 		return
 	}
 	defer connServer.Close()
+	err = req.Write(connServer)
 	Errhandle_Log(err, ERRMSG_NETWORK_SEND_STRUCT)
 	if err != nil {
 		return
