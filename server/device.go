@@ -17,21 +17,26 @@ var INVALIDUSERCHARS []rune = []rune{'\t', ' ', ':', '[', ']', '.'}
 
 //for internal use, mainly. This is shared with the client as of 4/4/2021
 type Device struct {
-	Userid      string                 `json:"userid"`
-	Devicename  string                 `json:"devname"`
-	Deviceid    uuid.UUID              `json:"devid"`
-	Ipaddr      net.IP                 `json:"ipaddr"`
-	Indata      chan byte              `json:"-"`
-	Inrequests  chan contentinfo       `json:"-"`
-	Outdata     chan byte              `json:"-"`
-	Consentlist map[string]contentinfo `json:"clist"`
-	Online      bool                   `json:"-"`
+	Username    string    `json:"userid"`
+	Devicename  string    `json:"devname"`
+	Device_uuid uuid.UUID `json:"devid"`
+	Ipaddr      net.IP    `json:"ipaddr"`
+	Indata      chan byte `json:"-"`
+	Outdata     chan byte `json:"-"`
+	Online      bool      `json:"-"`
 }
 
 //Sent from client to main on initiated contact.
 type DeviceInfo struct {
 	Userid     string `json:"userid"`
 	Devicename string `json:"devname"`
+}
+
+func (a *Device) Equal(b *Device) bool {
+	if a.Username == b.Username && a.Devicename == b.Devicename && a.Device_uuid == b.Device_uuid && a.Ipaddr.Equal(b.Ipaddr) && a.Indata == b.Indata && a.Outdata == b.Outdata && a.Online == b.Online {
+		return true
+	}
+	return false
 }
 
 //Constructor
@@ -50,21 +55,18 @@ func NewDevice(userid string, devicename string, ipaddr net.IP) (Device, error) 
 	Errhandle_Log(err, ERRMSG_DEVICECHECK)
 
 	if err != nil {
-		cl := make(map[string]contentinfo)
 		deviceid := uuid.New()
-		retdevice = Device{Userid: userid, Deviceid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Consentlist: cl, Online: false}
+		retdevice = Device{Username: userid, Device_uuid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Online: false}
 		AddDevice(retdevice)
 	} else {
 		return found_device, errors.New(ERRMSG_DEVICEEXISTS)
 	}
 
 	in := make(chan byte, 10*1024)
-	inreq := make(chan contentinfo, 10)
 	out := make(chan byte, 10)
 
 	retdevice.Indata = in
 	retdevice.Outdata = out
-	retdevice.Inrequests = inreq
 	return retdevice, nil
 }
 
@@ -94,35 +96,9 @@ func (d *Device) RequestConsent(recipientdevice Device, c contentinfo) error {
 	//pointer not nil; checked above
 	if !recipientdevice.Online {
 		SetConsoleColor(RED)
-		fmt.Printf("device [%s] is offline. Request Canceled.\n", recipientdevice.Deviceid)
+		fmt.Printf("device [%s] is offline. Request Canceled.\n", recipientdevice.Device_uuid)
 		SetConsoleColor(RESET)
 		return errors.New(ERRMSG_DEVICEOFFLINE)
-	}
-	recipientdevice.Inrequests <- c
-	return nil
-}
-
-//TODO: Networked form
-func (d *Device) EvalConsent(sender *Device) error {
-	var character byte
-	var cont contentinfo
-	var err error
-	var ok bool
-
-	for len(d.Inrequests) > 0 {
-		cont, ok = <-d.Inrequests
-		fmt.Printf("%s channel depth: %d\n", d.MarshalDevice(), len(d.Inrequests))
-		if !ok {
-			err = errors.New(ERRMSG_CHANNEL_OPERATION)
-			return err
-		}
-		if cont.Senderid == sender.Deviceid {
-			fmt.Printf("%s requests to send file [%s], size: %d bytes.\n", cont.Senderid, cont.Name, cont.Sizebytes)
-			fmt.Printf("Approve? (Y/*): ")
-			fmt.Scanf("%c\n", &character)
-			fmt.Println(character == 'Y')
-			d.Consentlist[cont.Name] = cont
-		}
 	}
 	return nil
 }

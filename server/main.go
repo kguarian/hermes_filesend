@@ -7,8 +7,8 @@ import (
 	"net"
 )
 import (
-	"database/sql"
 	"flag"
+	"log"
 )
 
 // //export DeviceConn
@@ -33,16 +33,20 @@ import (
 // }
 
 func main() {
+	var errorchannel chan error
+	var err error
 	logflag = flag.Bool("log", true, USTRING_SHOWLOG)
+	awayflag = flag.Bool("away", false, USTRING_AWAY)
 	flag.Parse()
 
-	displaylogs = *logflag
-
-	var devicedatabase *sql.DB
-	InitiateEverything()
-	defer devicedatabase.Close()
+	_, errorchannel = InitiateEverything()
+	log.Printf("channel length = %d", len(errorchannel))
+	for len(errorchannel) != 0 {
+		err = <-errorchannel
+		Errhandle_Exit(err, err.Error())
+	}
 	tcpl, err := net.Listen(TCP, IP_main) //change
-	Errhandle_Log(err, ERRMSG_NETWORK_CONNECTION)
+	Errhandle_Exit(err, ERRMSG_NETWORK_CONNECTION)
 	for {
 		//fmt.Printf("%sRESTARTING HERE\n%s", ANSIRED, ANSIRESET)
 		conn, err := tcpl.Accept()

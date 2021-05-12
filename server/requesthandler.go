@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -29,6 +30,7 @@ General Strategy (Covered in Stevens): how to encapsulate message in byte string
 
 //handles requests for the main
 func Ambassador(conn net.Conn) {
+	log.Printf("Connection IP address: %v\n", conn.RemoteAddr())
 	var msg Netmessage
 	var err error
 	var clienttype int //enum (const)
@@ -50,6 +52,13 @@ func Ambassador(conn net.Conn) {
 		if err != nil {
 			return
 		}
+	} else if clienttype == cclient {
+		read := make([]byte, 5)
+		conn.Read(read)
+		// if rdln != 5 || err != nil {
+		// 	return
+		// }
+		fmt.Printf("%s\n", read)
 	}
 	fmt.Printf("MESSAGE RECEIVED: %v\n", msg)
 	switch msg.Message {
@@ -75,7 +84,6 @@ func ClientIdentifier(conn net.Conn) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	bufioReader = bufio.NewReader(httpreq.Body)
 	fmt.Printf("Header: %v\n", httpreq.Header)
 	if httpreq.Header["Sec-Websocket-Version"] != nil {
 		var clienthash string = httpreq.Header["Sec-Websocket-Key"][0]
@@ -92,6 +100,8 @@ func ClientIdentifier(conn net.Conn) (int, error) {
 		return jsclient, nil
 	} else if httpreq.Header["Nativegoclient"] != nil {
 		return nativegoclient, nil
+	} else if reflect.DeepEqual(httpreq.Header["User-Agent"], []string{"hermes-C-client"}) {
+		return cclient, nil
 	} else {
 		return -1, nil
 	}

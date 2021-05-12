@@ -53,6 +53,6 @@ func (d *Device) NewContentinfo(r *Device, c *content) (contentinfo, error) {
 	fullname := strings.Split(contentfileinfo.Name(), "/")
 	ciname = fullname[len(fullname)-1]
 	currtime := time.Now()
-	retcontentinfo = contentinfo{Senderid: d.Deviceid, Receiverid: r.Deviceid, Sizebytes: cisz, Name: ciname, Timestamp: currtime}
+	retcontentinfo = contentinfo{Senderid: d.Device_uuid, Receiverid: r.Device_uuid, Sizebytes: cisz, Name: ciname, Timestamp: currtime}
 	return retcontentinfo, err
 }

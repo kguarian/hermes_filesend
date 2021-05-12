@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -23,8 +24,8 @@ func InitDeviceTables() *sql.DB {
 	var dbfile *os.File
 	var err error
 
-	db_mutex.Lock()
-	defer db_mutex.Unlock()
+	devdb_mutex.Lock()
+	defer devdb_mutex.Unlock()
 
 	dbfile, err = os.Open(DEVICE_DB_PATH)
 	if err != nil {
@@ -57,25 +58,31 @@ func InitDeviceTables() *sql.DB {
 //check devices/senders.txt for device entry with matching userid and devicename
 func AddDevice(d Device) error {
 	var err error
+	var user User
 	var devslice []Device
 
 	mut_devlist.Lock()
 	defer mut_devlist.Unlock()
 
-	devslice, err = DB_GetDeviceSlice(devicedb, d.Userid)
+	user, err = DB_GetUser(devicedb, d.Username)
+	Errhandle_Log(err, ERRMSG_DEVICENOTFOUND)
 	if err != nil {
-		return err
-	}
-	if len(devslice) == 0 {
-		devslice = make([]Device, 1)
-		devslice[0] = d
-		DB_InsertDeviceSlice(devicedb, d.Userid, devslice)
+		new_uuid, err := uuid.NewUUID()
+		Errhandle_Log(err, ERRMSG_CREATE_UUID)
+		if err != nil {
+			return err
+		}
+		devlist := make(map[uuid.UUID]Device)
+		devlist[d.Device_uuid] = d
+		user = User{Username: d.Username, User_uuid: new_uuid, Devicelist: devlist}
+		err = DB_AddUser(devicedb, d.Username, user)
+		Errhandle_Log(err, ERRMSG_DB_ATTEMPTED_INSERT_DUPLICATE)
 		return nil
-	} else {
-		devslice = append(devslice, d)
-		DB_InsertDeviceSlice(devicedb, d.Userid, devslice)
-		return nil
 	}
+	devslice = make([]Device, 1)
+	devslice[0] = d
+	DB_AddDevSlice(devicedb, d.Username, devslice)
+	return nil
 }
 
 //checks devicelists/senders for device entry with the parametrized properties.
@@ -85,6 +92,8 @@ func CheckForDevice(userid string, devname string) (Device, error) {
 	var retDevice Device
 
 	devslice, err = DB_GetDeviceSlice(devicedb, userid)
+	Info_Log(devslice)
+	Errhandle_Log(err, ERRMSG_DB_SELECT)
 	if err != nil {
 		return retDevice, err
 	}

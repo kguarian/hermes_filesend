@@ -3,7 +3,8 @@
 package main
 
 const (
-	IP_main          = "192.168.1.118:8081"
+	//only works at home
+	//IP_main          = "192.168.1.118:8081"
 	NETCODE_ERR      = byte(0)
 	NETCODE_SUC      = byte(1)
 	PORT_LOWER_BOUND = 49152
@@ -14,6 +15,7 @@ const (
 const (
 	nativegoclient int = iota
 	jsclient
+	cclient
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 )
 
 const (
+	PORT = ":8081"
 	//Requests from device
 	NETREQ_NEWDEVICE            = "nd"
 	NETREQ_NEWDEVICE_JAVASCRIPT = "nd_js"
@@ -31,4 +34,8 @@ const (
 const (
 	//Directive from main
 	NETDIR_SENDCONTENTINFO = "s_ci"
+)
+
+var (
+	IP_main = "192.168.1.118:8081"
 )

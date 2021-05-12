@@ -16,16 +16,17 @@ const (
 	RESET  = "Reset"
 	RED    = "Red"
 	YELLOW = "Yellow"
+	BLUE   = "Blue"
 
 	ANSIRESET  string = "\x1b[0m"
 	ANSIRED    string = "\x1b[31m"
 	ANSIGREEN  string = "\x1b[92m"
 	ANSIYELLOW string = "\x1b[33m"
+	ANSIBLUE   string = "\u001b[34m"
 )
 
 //In SetConsoleColor, we change the console color using this map as a lookup table.
-var colormap map[string]string = map[string]string{RESET: ANSIRESET, RED: ANSIRED, GREEN: ANSIGREEN, YELLOW: ANSIYELLOW}
-var displaylogs bool = true
+var colormap map[string]string = map[string]string{RESET: ANSIRESET, RED: ANSIRED, GREEN: ANSIGREEN, YELLOW: ANSIYELLOW, BLUE: ANSIBLUE}
 
 //We sometimes exit after errors. When we do, we call this function. Error messages are red here. These will be the last output from the program.
 func Errhandle_Exit(err error, reason string) {
@@ -47,7 +48,7 @@ func Errhandle_Exit(err error, reason string) {
 
 //We call this function for kind of trivial errors. It doesn't kill the program, error messages are yellow here.
 func Errhandle_Log(err error, reason string) {
-	if !displaylogs {
+	if !*logflag {
 		return
 	}
 	var file string
@@ -63,6 +64,19 @@ func Errhandle_Log(err error, reason string) {
 		fmt.Printf("\t successful.\n")
 		SetConsoleColor(RESET)
 	}
+}
+
+func Info_Log(thingtoprint interface{}) {
+	if !*logflag {
+		return
+	}
+	var file string
+	var line int
+	fmt.Printf("LOG MESSAGE:")
+	SetConsoleColor(BLUE)
+	_, file, line, _ = runtime.Caller(1)
+	fmt.Printf("\t%s %d\t: %v\n", file, line, thingtoprint)
+	SetConsoleColor(RESET)
 }
 
 //I don't see why I wouldn't just add the string literals into the source code... Will consider removing this function.
