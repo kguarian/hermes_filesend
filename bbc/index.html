@@ -1,0 +1,54 @@
+Page template from https://www.sitepoint.com/a-basic-html5-template/
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="wasm_exec.js"></script>
+  <script>
+    //https://www.sitepen.com/blog/compiling-go-to-webassembly 
+    if (WebAssembly) {
+      // WebAssembly.instantiateStreaming is not currently available in Safari
+      if (WebAssembly && !WebAssembly.instantiateStreaming) { // polyfill
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+          const source = await (await resp).arrayBuffer();
+          return await WebAssembly.instantiate(source, importObject);
+        };
+      }
+
+      const go = new Go();
+      WebAssembly.instantiateStreaming(fetch("go_devconn.wasm"), go.importObject).then((result) => {
+        go.run(result.instance);
+      });
+    } else {
+      console.log("WebAssembly is not supported in your browser")
+    }
+
+  </script>
+  <script>
+    function encode() {
+      var code = document.getElementById("code").value;
+      var hashval = door_encode(code);
+      document.getElementById("display").innerHTML = "copy everything surrounded by and including brackets: [ " + code + " " + hashval + " ]";
+      console.info(hashval);
+    }
+  </script>
+  <script>
+    function decode() {
+      var date = door_decode(document.getElementById("code").value);
+      document.getElementById("display").innerHTML = date;
+      console.log("finished decoding");
+    }
+  </script>
+</head>
+
+<body>
+  User ID: <input type="text" id="code"> <br>
+  <h2 id="display">BIG NUMBER GOES HERE</h2>
+  <input type="button" value="Generate Code" onclick="encode()">
+  <input type="button" value="Revert Code to Key" onclick="decode()">
+
+</body>
+
+</html>

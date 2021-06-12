@@ -9,37 +9,59 @@ import (
 )
 
 type User struct {
-	Username    string
-	User_uuid   uuid.UUID
-	Devicelist  map[uuid.UUID]Device
-	Inrequests  chan contentinfo       `json:"-"`
-	Consentlist map[string]contentinfo `json:"clist"`
+	Username          string
+	User_uuid         uuid.UUID
+	Devicelist        map[uuid.UUID]Device
+	Preapproved_users chan uuid.UUID
+	Linkrequests      chan uuid.UUID
+	Inrequests        chan contentinfo       `json:"-"`
+	Consentlist       map[string]contentinfo `json:"clist"`
 }
 
 type UserStorageStruct struct {
-	Username    string
-	Userid      uuid.UUID
-	Devicelist  map[uuid.UUID]Device
-	Inrequests  []contentinfo
-	Consentlist map[string]contentinfo `json:"clist"`
+	Username          string
+	Userid            uuid.UUID
+	Devicelist        map[uuid.UUID]Device
+	Preapproved_users []uuid.UUID
+	Linkrequests      []uuid.UUID
+	Inrequests        []contentinfo
+	Consentlist       map[string]contentinfo `json:"clist"`
 }
 
 func (u *User) Store() UserStorageStruct {
-	slicelen := len(u.Inrequests)
-	var exchslice []contentinfo = make([]contentinfo, slicelen)
-	for i := 0; i < slicelen; i++ {
+	inreqlen := len(u.Inrequests)
+	preapplen := len(u.Preapproved_users)
+	linkreqlen := len(u.Linkrequests)
+	var exchslice []contentinfo = make([]contentinfo, inreqlen)
+	var expreapp []uuid.UUID = make([]uuid.UUID, preapplen)
+	var exlinkreq []uuid.UUID = make([]uuid.UUID, linkreqlen)
+	for i := 0; i < inreqlen; i++ {
 		exchslice[i] = <-u.Inrequests
 	}
-	var retStruct UserStorageStruct = UserStorageStruct{Username: u.Username, Userid: u.User_uuid, Devicelist: u.Devicelist, Inrequests: exchslice, Consentlist: u.Consentlist}
+	for i := 0; i < preapplen; i++ {
+		expreapp[i] = <-u.Preapproved_users
+	}
+	for i := 0; i < linkreqlen; i++ {
+		exlinkreq[i] = <-u.Linkrequests
+	}
+	var retStruct UserStorageStruct = UserStorageStruct{Username: u.Username, Userid: u.User_uuid, Devicelist: u.Devicelist, Preapproved_users: expreapp, Linkrequests: exlinkreq, Inrequests: exchslice, Consentlist: u.Consentlist}
 	return retStruct
 }
 
 func (uss *UserStorageStruct) UnPack() User {
-	var exchchan chan contentinfo = make(chan contentinfo)
+	var ex_inreq chan contentinfo = make(chan contentinfo)
+	var ex_preapp chan uuid.UUID = make(chan uuid.UUID)
+	var ex_linkreq chan uuid.UUID = make(chan uuid.UUID)
 	for i, _ := range uss.Inrequests {
-		exchchan <- uss.Inrequests[i]
+		ex_inreq <- uss.Inrequests[i]
 	}
-	var retStruct User = User{Username: uss.Username, User_uuid: uss.Userid, Devicelist: uss.Devicelist, Inrequests: exchchan, Consentlist: uss.Consentlist}
+	for i, _ := range uss.Preapproved_users {
+		ex_preapp <- uss.Preapproved_users[i]
+	}
+	for i, _ := range uss.Preapproved_users {
+		ex_linkreq <- uss.Linkrequests[i]
+	}
+	var retStruct User = User{Username: uss.Username, User_uuid: uss.Userid, Devicelist: uss.Devicelist, Preapproved_users: ex_preapp, Linkrequests: ex_linkreq, Inrequests: ex_inreq, Consentlist: uss.Consentlist}
 	return retStruct
 
 }

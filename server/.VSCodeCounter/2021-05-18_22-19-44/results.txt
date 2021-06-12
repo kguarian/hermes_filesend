@@ -1,0 +1,52 @@
+Date : 2021-05-18 22:19:44
+Directory : /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server
+Total : 25 files,  1449 codes, 221 comments, 231 blanks, all 1901 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Go         |         19 |      1,289 |        221 |        204 |      1,714 |
+| Django txt |          5 |        154 |          0 |         24 |        178 |
+| XML        |          1 |          6 |          0 |          3 |          9 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |         25 |      1,449 |        221 |        231 |      1,901 |
+| devicelists                                                                         |          1 |          4 |          0 |          2 |          6 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                            | language   | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/authenticator.go        | Go         |         80 |          6 |         17 |        103 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/basicutil.go            | Go         |         17 |          0 |          2 |         19 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/bk.txt                  | Django txt |        134 |          0 |         20 |        154 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/consoleio.go            | Go         |         83 |          9 |         11 |        103 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/const_errmsgs.go        | Go         |         53 |          1 |          3 |         57 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/const_net.go            | Go         |         29 |          5 |          8 |         42 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/const_paths.go          | Go         |          8 |          1 |          4 |         13 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/const_usagestrings.go   | Go         |          5 |          0 |          2 |          7 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/content.go              | Go         |         42 |          7 |         10 |         59 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/db.go                   | Go         |        211 |         29 |         15 |        255 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/device.go               | Go         |         93 |         16 |         20 |        129 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/deviceauth.go           | Go         |         90 |          4 |         17 |        111 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/devicelists/senders.txt | Django txt |          4 |          0 |          2 |          6 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/devui.go                | Go         |         58 |          2 |          4 |         64 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/flags.go                | Go         |          3 |          0 |          2 |          5 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/go.mod                  | XML        |          6 |          0 |          3 |          9 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/init.go                 | Go         |         12 |          2 |          4 |         18 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/main.go                 | Go         |         39 |         50 |         21 |        110 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/mutexes.go              | Go         |          5 |          0 |          3 |          8 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/netio.go                | Go         |        252 |         48 |         40 |        340 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/requesthandler.go       | Go         |        129 |         22 |         11 |        162 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/resp.txt                | Django txt |         14 |          0 |          1 |         15 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/test2.txt               | Django txt |          1 |          0 |          0 |          1 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/testfile.txt            | Django txt |          1 |          0 |          1 |          2 |
+| /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server/user.go                 | Go         |         80 |         19 |         10 |        109 |
+| Total                                                                               |            |      1,449 |        221 |        231 |      1,901 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

@@ -59,7 +59,7 @@ func InitDeviceTables() *sql.DB {
 func AddDevice(d Device) error {
 	var err error
 	var user User
-	var devslice []Device
+	var currUser User
 
 	mut_devlist.Lock()
 	defer mut_devlist.Unlock()
@@ -79,10 +79,10 @@ func AddDevice(d Device) error {
 		Errhandle_Log(err, ERRMSG_DB_ATTEMPTED_INSERT_DUPLICATE)
 		return nil
 	}
-	devslice = make([]Device, 1)
-	devslice[0] = d
-	DB_AddDevSlice(devicedb, d.Username, devslice)
-	return nil
+	currUser, err = DB_GetUser(devicedb, d.Username)
+	currUser.Devicelist[d.Device_uuid] = d
+	err = DB_AddUser(devicedb, d.Username, currUser)
+	return err
 }
 
 //checks devicelists/senders for device entry with the parametrized properties.

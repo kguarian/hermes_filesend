@@ -74,6 +74,7 @@ func AddDevice(d device) (device, error) {
 
 	filewriter = bufio.NewWriter(file)
 	//TODO: implement a backup mechanism in case this crashes the program.
+	//note: 6/7/20: probably never happening. This is Go, not C.
 
 	_, err = filewriter.WriteString(string(d.MarshalDevice()) + "\n")
 	Errhandle_Log(err, ERRMSG_WRITE)
