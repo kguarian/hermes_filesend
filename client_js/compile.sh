@@ -1,3 +1,3 @@
 #!/usr/bin/bash
-GOOS=js GOARCH=wasm go build -o go_devconn.wasm jsclient
-sudo cp go_devconn.wasm /var/www/html/hint/
+GOOS=js GOARCH=wasm go build -o hermes_gosrc.wasm jsclient
+sudo cp hermes_gosrc.wasm /var/www/html/hint/

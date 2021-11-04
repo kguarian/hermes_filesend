@@ -10,5 +10,8 @@ NEVERTHELESS
 
 #Documentation:
 
-That one function in the `client_cpp/main.go` in conjunctio with the `server/requestHandler.go` `HandleRequest()` function should provide an idea about the workflow I have in mind for this project.
+This project should allow users to share files directly and legally where they have connections to the intermediate server.
+
+What is done:
+There's a server and CGo, Web Broser WASM build, Native Go client that work well with each other over my local address that's saddly looped back.
 

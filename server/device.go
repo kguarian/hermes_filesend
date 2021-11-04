@@ -24,19 +24,18 @@ type Device struct {
 	Indata      chan byte `json:"-"`
 	Outdata     chan byte `json:"-"`
 	Online      bool      `json:"-"`
+	DeviceType  int       `json:"dev_type"`
 }
 
 //Sent from client to main on initiated contact.
 type DeviceInfo struct {
 	Userid     string `json:"userid"`
 	Devicename string `json:"devname"`
+	DeviceType string `json:"dev_type"`
 }
 
 func (a *Device) Equal(b *Device) bool {
-	if a.Username == b.Username && a.Devicename == b.Devicename && a.Device_uuid == b.Device_uuid && a.Ipaddr.Equal(b.Ipaddr) && a.Indata == b.Indata && a.Outdata == b.Outdata && a.Online == b.Online {
-		return true
-	}
-	return false
+	return a.Username == b.Username && a.Devicename == b.Devicename && a.Device_uuid == b.Device_uuid && a.Ipaddr.Equal(b.Ipaddr) && a.Indata == b.Indata && a.Outdata == b.Outdata && a.Online == b.Online && a.DeviceType == b.DeviceType
 }
 
 //Constructor

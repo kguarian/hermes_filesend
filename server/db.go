@@ -11,17 +11,130 @@ import (
 	"github.com/google/uuid"
 )
 
+const currentDB string = "hermes"
+const admin_profile = "prof"
+
+var adminTable map[string]string = make(map[string]string)
+
 var devdb_mutex sync.Mutex = sync.Mutex{}
 var devicedb *sql.DB
 var index_listing map[string]int
 
+func DB_CreateAdminTable(db *sql.DB) (err error) {
+
+	createAdminSQL := "USE " + currentDB
+	create_statement, err := db.Prepare(createAdminSQL) // Prepare SQL Statement
+	if err != nil {
+		return err
+	}
+	defer create_statement.Close()
+	create_statement.Exec()
+	print(createAdminSQL)
+	/*
+		Admin profile should contain Admin Key, MySQL root cridentials
+	*/
+	createAdminSQL = `CREATE TABLE IF NOT EXISTS admin_profile (
+			index   INT
+			prof	TEXT
+		)`
+
+	create_statement, err = db.Prepare(createAdminSQL)
+	Errhandle_Log(err, "create (db)")
+	if err != nil {
+		return err
+	}
+	defer create_statement.Close()
+	create_statement.Exec()
+
+	return
+
+}
+
+func UpdateAdminTable(db *sql.DB) (err error) {
+	var jsondata string
+	var prof map[string]string
+	var admincode uuid.UUID
+	//ordering: big endian
+	var admincode_hexet_0 int64
+	var admincode_hexet_1 int64
+
+	var SELECT_admin_sql string = `SELECT prof FROM admin_profile WHERE index = ?`
+	_, err = db.Exec(SELECT_admin_sql, 0)
+	Errhandle_Log(err, ERRMSG_DB_SELECT)
+	if err != nil {
+		return err
+	}
+
+	json.Unmarshal([]byte(jsondata), &prof)
+	//covers nil case
+	if len(prof) == 0 {
+		goto TABLE_DNE
+	}
+	err = json.Unmarshal([]byte(prof[admin_profile]), &admincode)
+	Errhandle_Log(err, ERRMSG_JSON_UNMARSHALL)
+	if err != nil {
+		return err
+	}
+	admincode_hexet_0, admincode_hexet_1 = admincode.Time().UnixTime()
+	if admincode_hexet_0 == 0 && admincode_hexet_1 == 0 {
+		goto create_new_admincode
+	}
+	return nil
+
+	//optional branches here. Each must terminate or goto another branch: The idea behind eulerian tours
+TABLE_DNE:
+	prof = make(map[string]string)
+	goto create_new_admincode
+
+create_new_admincode:
+	admincode, err = uuid.NewUUID()
+	Errhandle_Log(err, ERRMSG_CREATE_UUID)
+	if err != nil {
+		return err
+	}
+	prof[admin_profile] = admincode.String()
+	goto MUTEX_ADMINTABLE_UPDATE
+
+MUTEX_ADMINTABLE_UPDATE:
+	var jsonstring []byte
+	jsonstring, err = json.Marshal(prof)
+	Errhandle_Log(err, ERRMSG_JSON_MARSHALL)
+	if err != nil {
+		return err
+	}
+	var UPDATE_STATEMENT string = `UPDATE admin_profile SET` + admin_profile + `= ?`
+	UPDATE_CLOSER, err := db.Prepare(UPDATE_STATEMENT)
+	Errhandle_Log(err, ERRMSG_DB_PREPARE_STATEMENT)
+	if err != nil {
+		return err
+	}
+	defer UPDATE_CLOSER.Close()
+	devdb_mutex.Lock()
+	_, err = UPDATE_CLOSER.Exec(string(jsonstring))
+	Errhandle_Log(err, "DB Execute")
+	devdb_mutex.Unlock()
+	if err != nil {
+		return err
+	}
+	return
+}
+
 //NOTE: user_db is name of table
 func DB_CreateDeviceTable(db *sql.DB) error {
-	createURLTableSQL := `CREATE TABLE user_devices (
-		"username"		TEXT,
-		"uuid"			TEXT,
-		"userinfo"		TEXT
-	  );` // SQL Statement for Create Table
+
+	createDatabaseSQL := "CREATE DATABASE IF NOT EXISTS " + currentDB
+	create_statement, err := db.Prepare(createDatabaseSQL) // Prepare SQL Statement
+	if err != nil {
+		return err
+	}
+	defer create_statement.Close()
+	create_statement.Exec() // Execute SQL Statements
+
+	createURLTableSQL := `CREATE TABLE IF NOT EXISTS user_devices (
+		username		TEXT,
+		uuid			TEXT,
+		userinfo		TEXT
+	  )` // SQL Statement for Create Table
 
 	//fmt.Println("Create url_status table...")
 	statement, err := db.Prepare(createURLTableSQL) // Prepare SQL Statement
@@ -140,10 +253,11 @@ func DB_GetUser(db *sql.DB, username string) (User, error) {
 	var USS UserStorageStruct
 	var retUser User
 	//fmt.Println("Inserting URL Status ...")
-	DB_selectdevslice := `SELECT userinfo from user_devices WHERE username == ?`
+	DB_selectdevslice := `SELECT userinfo from user_devices WHERE username = ?`
 	devdb_mutex.Lock()
 	defer devdb_mutex.Unlock()
 	sqlrows, err = db.Query(DB_selectdevslice, username) // Prepare statement.
+	Info_Log(username)
 	Errhandle_Log(err, ERRMSG_DB_SELECT)
 	// This is good to avoid SQL injections
 	if err != nil {
@@ -168,6 +282,7 @@ func DB_GetUser(db *sql.DB, username string) (User, error) {
 }
 
 func DB_GetMultipleUsers(db *sql.DB, usernames []string) (retslice map[string]User, err error) {
+	retslice = make(map[string]User)
 	var USS UserStorageStruct
 	for i, v := range usernames {
 		if func() bool {
@@ -175,7 +290,7 @@ func DB_GetMultipleUsers(db *sql.DB, usernames []string) (retslice map[string]Us
 			var sqlrows *sql.Rows
 			var json_userstoragestruct_slice string
 			//fmt.Println("Inserting URL Status ...")
-			DB_selectdevslice := `SELECT userinfo from user_devices WHERE username == ?`
+			DB_selectdevslice := `SELECT userinfo from user_devices WHERE username = ?`
 			devdb_mutex.Lock()
 			defer devdb_mutex.Unlock()
 			sqlrows, err = db.Query(DB_selectdevslice, usernames[i]) // Prepare statement.
@@ -223,7 +338,7 @@ func DB_GetUserByUUID(db *sql.DB, uuid uuid.UUID) (User, error) {
 	var USS UserStorageStruct
 	var retUser User
 	//fmt.Println("Inserting URL Status ...")
-	DB_selectdevslice := `SELECT userinfo from user_devices WHERE uuid == ?`
+	DB_selectdevslice := `SELECT userinfo from user_devices WHERE uuid = ?`
 	devdb_mutex.Lock()
 	defer devdb_mutex.Unlock()
 	sqlrows, err = db.Query(DB_selectdevslice, uuid.String()) // Prepare statement.
@@ -259,11 +374,11 @@ func DB_GetDeviceSlice(db *sql.DB, username string) ([]Device, error) {
 	var retSlice_index int = 0
 	var err error
 	baseUser, err = DB_GetUser(db, username)
-	Errhandle_Log(err, ERRMSG_DB_SELECT)
-	Info_Log(baseUser)
 	if err != nil {
 		return retSlice, err
 	}
+	Errhandle_Log(err, ERRMSG_DB_SELECT)
+	Info_Log(baseUser)
 	userMap = baseUser.Devicelist
 	Info_Log(userMap)
 	retSlice = make([]Device, len(userMap))

@@ -21,11 +21,13 @@ type device struct {
 	Outdata     chan byte              `json:"-"`
 	Consentlist map[string]contentinfo `json:"clist"`
 	Online      bool                   `json:"-"`
+	DeviceType  string                 `json:"dev_type"`
 }
 
 type deviceinfo struct {
 	Userid     string `json:"userid"`
 	Devicename string `json:"devname"`
+	DeviceType string `json:"dev_type"`
 }
 
 //NewDevices creates a new device, but returns an error iff the parametrized id is invalid
@@ -44,7 +46,7 @@ func NewDevice(userid string, devicename string, ipaddr net.IP) (device, error) 
 	if err != nil || devicejson == nil {
 		cl := make(map[string]contentinfo)
 		deviceid := uuid.New()
-		retdevice = device{Userid: userid, Deviceid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Consentlist: cl, Online: false}
+		retdevice = device{Userid: userid, Deviceid: deviceid, Devicename: devicename, Ipaddr: ipaddr, Consentlist: cl, Online: false, DeviceType: "cgo"}
 		AddDevice(retdevice)
 	} else {
 		err = json.Unmarshal(devicejson, &retdevice)
@@ -61,6 +63,9 @@ func NewDevice(userid string, devicename string, ipaddr net.IP) (device, error) 
 	retdevice.Indata = in
 	retdevice.Outdata = out
 	retdevice.Inrequests = inreq
+
+	retdevice.DeviceType = "cgo"
+
 	return retdevice, nil
 }
 

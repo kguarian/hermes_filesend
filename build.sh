@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 WD=$(pwd)
-cd /home/guarian/HOME/coding/go/src/rnd/hermes_filesend/server;
+cd /home/guarian/HOME/coding/go/src/hermes_filesend/server;
 sed -i 's/main/server/g' *.go;
 go build server;
 cd ../;

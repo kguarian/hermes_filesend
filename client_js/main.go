@@ -11,8 +11,11 @@ import (
 var wgmain sync.WaitGroup
 
 func main() {
+	lf := true
+	logflag = &lf
 	c := make(chan bool)
 	js.Global().Set("DeviceConn", js.FuncOf(DeviceConn))
+	js.Global().Set("file_to_server", js.FuncOf(handle_file))
 	<-c
 }
 
@@ -83,4 +86,19 @@ func DeviceConn(this js.Value, val []js.Value) interface{} {
 	}))
 
 	return js.ValueOf(retstring)
+}
+
+func handle_file(this js.Value, val []js.Value) interface{} {
+	var reader js.Value
+	if len(val) == 0 {
+		js.Global().Get("console").Call("info", "empty arg list to gowasm")
+		return nil
+	}
+	js.Global().Get("console").Call("info", js.ValueOf("handle_file enters"))
+	js.Global().Get("console").Call("info", val[0])
+	js.Global().Get("console").Call("info", val[0].Call("stream"))
+	reader = val[0].Call("stream").Call("getReader")
+	reader.Call("cancel")
+
+	return nil
 }

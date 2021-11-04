@@ -26,9 +26,13 @@ const (
 const (
 	PORT = ":8081"
 	//Requests from device
-	NETREQ_NEWDEVICE            = "nd"
-	NETREQ_NEWDEVICE_JAVASCRIPT = "nd_js"
-	NETREQ_NEWCONTENTTRANSFER   = "nct"
+	NETREQ_NEWDEVICE                = "nd"
+	NETREQ_NEWDEVICE_JAVASCRIPT     = "nd_js"
+	NETREQ_NEWCONTENTTRANSFER       = "nct"
+	NETREQ_TRUSTREQUEST             = "tc"
+	NETREQ_TRUSTCONSENT_JAVASCRIPT  = "tc_js"
+	NETMESS_SUCCESSFUL_TRANSMISSION = "gxd_trans"
+	TIMEOUT_ERROR                   = "error_timeout"
 )
 
 const (

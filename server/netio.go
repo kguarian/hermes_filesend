@@ -10,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"time"
 )
 
 //Message struct to complement the send/receive struct methods
@@ -203,7 +204,7 @@ func (dg *Websocket_datagram) CreateDatagram() ([]byte, error) {
 
 //SendStruct is used to send **JSON-MARSHALLED structs over a network connection
 //i should be a pointer
-func SendStruct(i interface{}, c net.Conn) error {
+func SendStruct(i interface{}, c net.Conn, timeout time.Time, error_channel chan error) error {
 	const length_of_int = 4
 	var b []byte
 	var err error
@@ -214,12 +215,14 @@ func SendStruct(i interface{}, c net.Conn) error {
 	var errbuf []byte
 
 	if i == nil {
-		return errors.New(ERRMSG_NILPTR)
+		error_channel <- errors.New(ERRMSG_NILPTR)
+		return err
 	}
 	b, err = json.Marshal(i)
 
 	Errhandle_Log(err, ERRMSG_JSON_MARSHALL)
 	if err != nil {
+		error_channel <- err
 		return err
 	}
 	content_lenbuf = make([]byte, length_of_int)
@@ -233,55 +236,62 @@ func SendStruct(i interface{}, c net.Conn) error {
 	recvlength, err = c.Write(content_lenbuf)
 	Errhandle_Log(err, ERRMSG_NETWORK_WRITE)
 	if recvlength != length_of_int {
-		return errors.New(ERRMSG_NETWORK_WRITE)
+		error_channel <- errors.New(ERRMSG_NETWORK_WRITE)
+		return err
 	}
 	//COMPLIMENTARY: Receive same length as confirmation of receipt
 	c.Read(client_lenbuf)
 	if bytes.Equal(content_lenbuf, client_lenbuf) {
 		//COMPLIMENTARY: Send json struct
 		_, err = c.Write(b)
+		error_channel <- err
 		return err
 	} else {
 		//COMPLIMENTARY: Send error message
 		errbuf[0] = NETCODE_ERR
 		c.Write(errbuf)
-		return errors.New(ERRMSG_NETWORK_WRITE)
+		error_channel <- errors.New(ERRMSG_NETWORK_WRITE)
+		return err
 	}
+	return err
 }
 
-func SendStruct_JSClient(i interface{}, c net.Conn) error {
+func SendStruct_JSClient(i interface{}, c net.Conn, timeout time.Time, error_channel chan error) (err error) {
 	var b []byte
-	var err error
 	var sentdg Websocket_datagram
 
 	b, err = json.Marshal(i)
 	Errhandle_Log(err, ERRMSG_JSON_MARSHALL)
 	if err != nil {
+		error_channel <- err
 		return err
 	}
 	sentdg, err = NewWebsocketDatagram(b, websocket_type_binary)
 	Errhandle_Log(err, ERRMSG_CREATE_DATAGRAM_STRUCT)
 	if err != nil {
+		error_channel <- err
 		return err
 	}
 
 	b, err = sentdg.CreateDatagram()
 	Errhandle_Log(err, ERRMSG_CREATE_DATAGRAM)
 	if err != nil {
+		error_channel <- err
 		return err
 	}
 
 	n, err := c.Write(b)
 	Errhandle_Log(err, ERRMSG_NETWORK_SEND_STRUCT)
 	if n != len(b) || err != nil {
+		error_channel <- err
 		return err
 	}
-	return nil
+	return err
 }
 
 //complement to SendStruct
 //PASS A POINTER TO RECEIVE THE STRUCT
-func ReceiveStruct(i interface{}, c net.Conn) error {
+func ReceiveStruct(i interface{}, c net.Conn, timeout time.Time, error_channel chan error) error {
 
 	const length_of_int = 4
 	var intbuf []byte = make([]byte, length_of_int)
@@ -315,7 +325,7 @@ func ReceiveStruct(i interface{}, c net.Conn) error {
 	return err
 }
 
-func ReceiveStruct_JSClient(i interface{}, c net.Conn) error {
+func ReceiveStruct_JSClient(i interface{}, c net.Conn, timeout time.Time, error_channel chan error) error {
 	var datagram Websocket_datagram
 	var err error
 
